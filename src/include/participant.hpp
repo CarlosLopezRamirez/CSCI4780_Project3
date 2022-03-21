@@ -11,7 +11,7 @@ class Participant {
     public:
         // Constructs a client identified by `pid` that logs all received multicast messages in 
         // `log_file` after connecting to the coordinator at address `remoteaddr` on port `remote_port`
-        Participant(int pid, std::string log_file, std::string remoteaddr, int remote_port);
+        Participant(int pid, std::string log_file, std::string remoteaddr, uint16_t remote_port);
 
         // Establishes connection with the coordinator and begins multicast process
         void start();
