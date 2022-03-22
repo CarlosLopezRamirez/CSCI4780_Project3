@@ -7,6 +7,9 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "multicast_message.hpp"
+#include "inet/internet_socket.hpp"
+
 class Participant {
     public:
         // Constructs a client identified by `pid` that logs all received multicast messages in 
