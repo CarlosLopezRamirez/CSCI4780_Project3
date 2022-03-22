@@ -34,6 +34,9 @@ class Participant {
         // Handle participant requests to coordinator
         void handle_request_(MulticastMessage participant_request);
 
+        // Returns whether or not the Coordinator has the participant as registered
+        bool previouslyRegistered();
+
         // Socket to be used by this participant
         InternetSocket participant_socket_;
 
@@ -42,6 +45,18 @@ class Participant {
 
         // Coordinator port that will be connected to
         int coordinator_port;
+
+        // ID of this participant
+        int pid_;
+
+        // Is the participant registered
+        bool registered_ = false;
+
+        // Is the participant running
+        bool is_running_;
+
+        // path of log_file
+        std::string log_file_path_;
 
         // Maps string to Command, to be used in `parse_input`
         const std::unordered_map<std::string, MulticastMessageType> cmd_map_ = {

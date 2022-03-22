@@ -14,25 +14,13 @@ enum class MulticastMessageType : uint8_t {
     // Invalid message type
     INVALID = 0,
     ACKNOWLEDGEMENT,
-    DATA_NORM,
-    DATA_LAST,
-
-    // Response types
-    RESPONSE_GOOD,  // Indicates successful execution of command
-    RESPONSE_BAD,   // Indicates failed execution of command
 
     // Request types
-    REQUEST_CD,
-    REQUEST_DELETE,
-    REQUEST_GET,
-    REQUEST_GET_ASYNC,
-    REQUEST_LS,
-    REQUEST_MKDIR,
-    REQUEST_PUT,
-    REQUEST_PUT_ASYNC,
-    REQUEST_PWD,
-    REQUEST_QUIT,
-    REQUEST_TERMINATE
+    PARTICIPANT_REGISTER,
+    PARTICIPANT_DEREGISTER,
+    PARTICIPANT_DISCONNECT,
+    PARTICIPANT_RECONNECT,
+    PARTICIPANT_MSEND
 };
 
 struct MulticastMessageHeader {
