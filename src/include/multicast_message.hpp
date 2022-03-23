@@ -15,6 +15,7 @@ enum class MulticastMessageType : uint8_t {
     INVALID = 0,
     ACKNOWLEDGEMENT,
 
+
     // Request types
     PARTICIPANT_REGISTER,
     PARTICIPANT_DEREGISTER,
@@ -28,7 +29,7 @@ struct MulticastMessageHeader {
     MulticastMessageType type;
 
     // Used to identify a command
-    uint16_t id;
+    uint16_t pid;
 
     // The total size of the message being transmitted, including the header
     uint32_t size;

@@ -37,14 +37,20 @@ class Participant {
         // Returns whether or not the Coordinator has the participant as registered
         bool previouslyRegistered();
 
-        // Socket to be used by this participant
-        InternetSocket participant_socket_;
+        // Socket to be used by this participant to send messages
+        InternetSocket participant_send_socket_;
+
+        // Socket to be used by this participant to receive messages
+        InternetSocket participant_receive_socket_;
 
         // Coordinator address that will be connected to
         std::string remoteaddr;
 
         // Coordinator port that will be connected to
         int coordinator_port;
+
+        // Port to bind to receive messages
+        int register_port_;
 
         // ID of this participant
         int pid_;
