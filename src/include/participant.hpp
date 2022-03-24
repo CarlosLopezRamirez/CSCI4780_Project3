@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <thread>
 
 #include "multicast_message.hpp"
 #include "inet/internet_socket.hpp"
@@ -31,9 +32,6 @@ class Participant {
         // Handle participant requests to coordinator
         void handle_request(MulticastMessage participant_request);
 
-        // Returns whether or not the Coordinator has the participant as registered
-        bool previouslyRegistered();
-
         // Handle Register Command
         void handleRegister(MulticastMessage participant_request);
 
@@ -49,14 +47,23 @@ class Participant {
         // Handle MSend Command
         void handleMSend(MulticastMessage participant_request);
 
+        // Get ACK or NEG_ACK
+        MulticastMessageHeader getACK();
+
         // Handle Quit Command
         void handleQuit();
+
+        // Handle all messages that are sent by other participants
+        void handleIncomingMulticastMessages();
 
         // Socket to be used by this participant to send messages
         InternetSocket participant_send_socket_;
 
         // Socket to be used by this participant to receive messages
         InternetSocket participant_receive_socket_;
+
+        // Thread to be used for handling incoming multicast messages
+        std::thread incoming_messages_thread_;
 
         // Coordinator address that will be connected to
         std::string remoteaddr;

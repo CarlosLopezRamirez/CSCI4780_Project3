@@ -17,7 +17,7 @@ Participant::Participant(int pid, std::string log_file,
 void Participant::start() {
     this->is_running_ = true;
     this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    bool registered_ = this->previouslyRegistered();
+    // TODO: Ask if we need to handle checking if we were previously registered before killing the app
     while (is_running_) {
         // TODO: Implement Multicast Message Constructor
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_);
@@ -97,21 +97,25 @@ void Participant::handle_request(MulticastMessage participant_request) {
     }
 }
 
-bool Participant::previouslyRegistered() {
-    // TODO: IMPLEMENT
-    return false;
-}
-
 void Participant::handleRegister(MulticastMessage participant_request) {
     if (this->registered_) {
         std::cout << "You are already registered" << "\n";
         return;
     }
-    this->registered_ = true;
-    this->connected_ = true;
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    // TODO: start message receiving thread
-    // TODO: detach message receiving thread
+    MulticastMessageType ack = this->getACK().type;
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+        std::cout << "You are now registered and connected to the multicast group" << "\n";
+        this->registered_ = true;
+        this->connected_ = true;
+        incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
+        incoming_messages_thread_.detach();
+        return;
+    }
+    else {
+        std::cout << "You were not able to register to the multicast group" << "\n";
+        return;
+    }
 }
 
 void Participant::handleDeregister(MulticastMessage participant_request) {
@@ -119,42 +123,69 @@ void Participant::handleDeregister(MulticastMessage participant_request) {
         std::cout << "You are already deregistered" << "\n";
         return;
     }
-    this->registered_ = false;
     if (this->connected_) {
-        // TODO: Disconnect, but not in the way that participant is still viable for
-        // persisted messages
-        this->connected_ = false;
+        // TODO: Ask if this is an ok way to handle this
+        std::cout << "Please disconnect before deregistering" << "\n";
+        return;
     }
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
+    MulticastMessageType ack = this->getACK().type;
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+        std::cout << "You are now deregistered from the multicast group" << "\n";
+        this->registered_ = false;
+        return;
+    }
+    else {
+        std::cout << "You were not able to register to the multicast group" << "\n";
+        return;
+    }
 }
 
 void Participant::handleReconnect(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You must be registered to be able to connect/reconnect" << "\n";
+        std::cout << "You must be registered to be able to disconnect/reconnect" << "\n";
         return;
     }
     if (this->connected_) {
         std::cout << "You are already connected" << "\n";
         return;
     }
-    this->connected_ = true;
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    // TODO: receive any messages that were missed that fall within threshold
-    // TODO: start message receiving thread
-    // TODO: detach message receiving thread
+    MulticastMessageType ack = this->getACK().type;
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+        std::cout << "You are now reconnected to the multicast group" << "\n";
+        this->connected_ = true;
+        // TODO: receive all messages that you missed that fall within threshold
+        incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
+        incoming_messages_thread_.detach();
+        return;
+    }
+    else {
+        std::cout << "You were not able to reconnect to the multicast group" << "\n";
+        return;
+    }
 }
 
 void Participant::handleDisconnect(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You must be registered to be able to connect/reconnect" << "\n";
+        std::cout << "You must be registered to be able to disconnect/reconnect" << "\n";
         return;
     }
     if (!this->connected_) {
         std::cout << "You are already disconnected" << "\n";
         return;
     }
-    this->connected_ = false;
-    // TODO: stop message receiving thread
+    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
+    MulticastMessageType ack = this->getACK().type;
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+        std::cout << "You are now disconnected from the multicast group" << "\n";
+        this->connected_ = false;
+        incoming_messages_thread_.join();
+        return;
+    }
+    else {
+        std::cout << "You were not able to disconnect from the multicast group" << "\n";
+    }
 }
 
 void Participant::handleMSend(MulticastMessage participant_request) {
@@ -167,9 +198,46 @@ void Participant::handleMSend(MulticastMessage participant_request) {
         return;
     }
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    // TODO: receive ACK for message 
+    MulticastMessageType ack = this->getACK().type;
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+        std::cout << "Message sent to multicast group succesfully" << "\n";
+        return;
+    }
+    else {
+        std::cout << "Message was not sent succesfully to multicast group" << "\n";
+        return;
+    }
 }
 
 void Participant::handleQuit() {
+    if (this->connected_) {
+        // TODO: Ask if this is an ok way to implement this
+        std::cout << "Please disconnect before quitting" << "\n";
+        return;
+    }
+    std::cout << "Thank you for using this persistent and asynchronous multicast" << "\n";
     this->stop();
+}
+
+MulticastMessageHeader Participant::getACK() {
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = this->participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return MulticastMessageHeader();
+    }
+
+    this->participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.size > 0) {
+        return header;
+    }
+    else {
+        return MulticastMessageHeader();
+    }
+}
+
+void Participant::handleIncomingMulticastMessages() {
+    // TODO: Implement
+    
 }
