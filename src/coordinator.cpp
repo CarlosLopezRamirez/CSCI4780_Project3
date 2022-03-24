@@ -77,27 +77,64 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
     }
     switch(part_req.header().type) {
         case(MulticastMessageType::PARTICIPANT_REGISTER): {
-            this->handleRegister();
+            this->handleRegister(part_req);
             break;
         };
         case(MulticastMessageType::PARTICIPANT_DEREGISTER): {
-            this->handleDeregister();
+            this->handleDeregister(part_req);
             break;
         };
         case(MulticastMessageType::PARTICIPANT_RECONNECT): {
-            this->handleReconnect();
+            this->handleReconnect(part_req);
             break;
         };
         case(MulticastMessageType::PARTICIPANT_DISCONNECT): {
-            this->handleDisconnect();
+            this->handleDisconnect(part_req);
             break;
         };
         case(MulticastMessageType::PARTICIPANT_MSEND): {
-            this->handleMSend();
+            this->handleMSend(part_req);
             break;
         }
         default: {
             break;
         }
     }
+}
+
+void Coordinator::handleRegister(MulticastMessage part_req) {
+    this->pids_registered_.insert(part_req.header().pid);
+    this->pids_connected_.insert(part_req.header().pid);
+    // Start connection to participant's indicated port number?
+    // Store connection somewhere?
+    return;
+}
+
+void Coordinator::handleDeregister(MulticastMessage part_req) {
+    this->pids_registered_.erase(part_req.header().pid);
+    return;
+}
+
+void Coordinator::handleReconnect(MulticastMessage part_req) {
+    // TODO: SEND ALL MESSAGES MISSED WHILE DISCONNECTED
+    pids_disconnected_.erase(part_req.header().pid);
+    pids_connected_.insert(part_req.header().pid);
+    // Start connection to participant's indicated port number?
+    // Store connection somewhere?
+    return;
+}
+
+void Coordinator::handleDisconnect(MulticastMessage part_req) {
+    // TODO: Implement
+    pids_connected_.erase(part_req.header().pid);
+    std::vector<MulticastMessage> temp;
+    this->pids_disconnected_.insert({part_req.header().pid, temp});
+    return;
+}
+
+void Coordinator::handleMSend(MulticastMessage part_req) {
+    // TODO: Implement
+    // Send message to all who are connected
+    // Store message in map for those who are disconnected
+    return;
 }

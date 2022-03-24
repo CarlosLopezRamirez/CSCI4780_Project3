@@ -30,15 +30,15 @@ class Coordinator {
 
         void handleRequest(MulticastMessage part_req, InternetSocket part_sock);
 
-        void handleRegister();
+        void handleRegister(MulticastMessage part_req);
 
-        void handleDeregister();
+        void handleDeregister(MulticastMessage part_req);
 
-        void handleReconnect();
+        void handleReconnect(MulticastMessage part_req);
 
-        void handleDisconnect();
+        void handleDisconnect(MulticastMessage part_req);
 
-        void handleMSend();
+        void handleMSend(MulticastMessage part_req);
         
         // The port that this coordinator is listening on
         uint16_t localport_;

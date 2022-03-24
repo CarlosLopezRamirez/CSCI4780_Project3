@@ -16,7 +16,6 @@ Participant::Participant(int pid, std::string log_file,
 
 void Participant::start() {
     this->is_running_ = true;
-    // TODO: Ask if we need to handle checking if we were previously registered before killing the app
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_);
         try {
