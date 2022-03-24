@@ -68,16 +68,16 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
     if (part_req.header().type != MulticastMessageType::INVALID) {
         MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid);
         part_sock.do_sendall(ack.to_buffer());
-        part_sock.do_shutdown();
     }
     else {
         MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid);
         part_sock.do_sendall(ack.to_buffer());
         part_sock.do_shutdown();
+        return;
     }
     switch(part_req.header().type) {
         case(MulticastMessageType::PARTICIPANT_REGISTER): {
-            this->handleRegister(part_req);
+            this->handleRegister(part_req, part_sock.host_ip());
             break;
         };
         case(MulticastMessageType::PARTICIPANT_DEREGISTER): {
@@ -102,11 +102,9 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
     }
 }
 
-void Coordinator::handleRegister(MulticastMessage part_req) {
-    this->pids_registered_.insert(part_req.header().pid);
+void Coordinator::handleRegister(MulticastMessage part_req, std::string part_ip) {
+    this->pids_registered_.insert({part_req.header().pid, part_ip});
     this->pids_connected_.insert(part_req.header().pid);
-    // Start connection to participant's indicated port number?
-    // Store connection somewhere?
     return;
 }
 
@@ -118,14 +116,13 @@ void Coordinator::handleDeregister(MulticastMessage part_req) {
 void Coordinator::handleReconnect(MulticastMessage part_req) {
     // TODO: SEND ALL MESSAGES MISSED WHILE DISCONNECTED
     pids_disconnected_.erase(part_req.header().pid);
+    disconnect_times.erase(part_req.header().pid);
     pids_connected_.insert(part_req.header().pid);
-    // Start connection to participant's indicated port number?
-    // Store connection somewhere?
     return;
 }
 
 void Coordinator::handleDisconnect(MulticastMessage part_req) {
-    // TODO: Implement
+    disconnect_times.insert({part_req.header().pid, std::time(0)});
     pids_connected_.erase(part_req.header().pid);
     std::vector<MulticastMessage> temp;
     this->pids_disconnected_.insert({part_req.header().pid, temp});

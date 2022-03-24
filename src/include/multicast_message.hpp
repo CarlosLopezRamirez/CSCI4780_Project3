@@ -40,6 +40,9 @@ struct MulticastMessageHeader {
     // The total size of the message being transmitted, including the header
     uint32_t size;
 
+    // Time message arrives at coordinator
+    time_t coordinator_time;
+
     // Constructs a header from the given buffer
     static MulticastMessageHeader from_buffer(Buffer &buffer);
 
