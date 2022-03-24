@@ -24,7 +24,10 @@ enum class MulticastMessageType : uint8_t {
     PARTICIPANT_DISCONNECT,
     PARTICIPANT_RECONNECT,
     PARTICIPANT_MSEND,
-    PARTICIPANT_QUIT
+    PARTICIPANT_QUIT,
+
+    // Multicasted Message
+    MULTI_MESSAGE
 };
 
 struct MulticastMessageHeader {
@@ -47,7 +50,7 @@ struct MulticastMessageHeader {
 class MulticastMessage {
   public:
     // Constructs an FTPMessage
-    MulticastMessage(MulticastMessageType type, uint16_t id);
+    MulticastMessage(MulticastMessageType type, uint16_t pid);
 
     // Returns the header of this message
     MulticastMessageHeader header();

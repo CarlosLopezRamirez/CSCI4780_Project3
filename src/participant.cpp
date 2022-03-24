@@ -16,7 +16,6 @@ Participant::Participant(int pid, std::string log_file,
 
 void Participant::start() {
     this->is_running_ = true;
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     // TODO: Ask if we need to handle checking if we were previously registered before killing the app
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_);
@@ -101,8 +100,11 @@ void Participant::handleRegister(MulticastMessage participant_request) {
         std::cout << "You are already registered" << "\n";
         return;
     }
+    // Based on project description, they only want us to connect to coordinator when we want to send a message
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
+    this->participant_send_socket_.do_shutdown();
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
@@ -129,8 +131,11 @@ void Participant::handleDeregister(MulticastMessage participant_request) {
         std::cout << "Please disconnect before deregistering" << "\n";
         return;
     }
+    // Based on project description, they only want us to connect to coordinator when we want to send a message
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
+    this->participant_send_socket_.do_shutdown();
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now deregistered from the multicast group" << "\n";
         this->registered_ = false;
@@ -151,8 +156,11 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
         std::cout << "You are already connected" << "\n";
         return;
     }
+    // Based on project description, they only want us to connect to coordinator when we want to send a message
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
+    this->participant_send_socket_.do_shutdown();
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
         this->connected_ = true;
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
@@ -178,8 +186,11 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
         std::cout << "You are already disconnected" << "\n";
         return;
     }
+    // Based on project description, they only want us to connect to coordinator when we want to send a message
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
+    this->participant_send_socket_.do_shutdown();
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {        
         this->connected_ = false;
         this->participant_receive_socket_.do_shutdown();
@@ -201,8 +212,11 @@ void Participant::handleMSend(MulticastMessage participant_request) {
         std::cout << "You must be connected to send messages to the multicast group" << "\n";
         return;
     }
+    // Based on project description, they only want us to connect to coordinator when we want to send a message
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
+    this->participant_send_socket_.do_shutdown();
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "Message sent to multicast group succesfully" << "\n";
         return;
@@ -246,10 +260,9 @@ void Participant::handleIncomingMulticastMessages() {
     connection_request.readable  = true;
     connection_request.writeable = false;
 
-    // TODO: Implement
     while (this->connected_) {
         // poll to see if there are any connections
-        PollInfo result = participant_receive_socket_.do_poll(connection_request, 1 * 1000 /* timeout after 1 second */);
+        PollInfo result = this->participant_receive_socket_.do_poll(connection_request, 1 * 1000 /* timeout after 1 second */);
         if (!result.valid || (result.valid && !result.readable)) continue;
 
         // We do not execute from here on forward if there is no connection from a coordinator
@@ -280,6 +293,7 @@ void Participant::handleIncomingMulticastMessages() {
         std::cout << recvd_multi_msg;
 
         // log received message
+        // TODO: LOOK INTO ADDING TIME MESSAGE SENT INTO MULTICAST MESSAGE HEADER
         std::ofstream outfile;
         outfile.open(this->log_file_path_, std::ios_base::app);
         outfile << recvd_multi_msg;

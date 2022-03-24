@@ -6,6 +6,12 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <set>
+#include <unordered_map>
+#include <vector>
+
+#include "multicast_message.hpp"
+#include "inet/internet_socket.hpp"
 
 class Coordinator {
     public:
@@ -20,12 +26,41 @@ class Coordinator {
         void stop();
 
     private:
+        void handleIncomingMessages();
+
+        void handleRequest(MulticastMessage part_req, InternetSocket part_sock);
+
+        void handleRegister();
+
+        void handleDeregister();
+
+        void handleReconnect();
+
+        void handleDisconnect();
+
+        void handleMSend();
+        
         // The port that this coordinator is listening on
         uint16_t localport_;
 
         // Time (in seconds) that messages will persist for disconnected participants
         int persistence_time_;
+
+        // port that will accept connections from participants
+        InternetSocket coordinator_socket_;
+
+        // Threads that is actively listening for messages
+        std::thread incoming_messages_thread_;
         
         // True when the Coordinator is not attempting to stop its operation
-        std::atomic<bool> is_runnning_;
+        std::atomic<bool> is_running_ = false;
+
+        // Set of every participant id that is connected
+        std::set<int> pids_connected_;
+
+        // Set of every participant id that is registered
+        std::set<int> pids_registered_;
+
+        // Map of every registered but disconnected pid, with a set of messages they miss 
+        std::unordered_map<int, std::vector<MulticastMessage>> pids_disconnected_;
 };

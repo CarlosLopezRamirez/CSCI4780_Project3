@@ -99,4 +99,3 @@ class Participant {
             {"quit", MulticastMessageType::PARTICIPANT_QUIT}
         };
 };
-

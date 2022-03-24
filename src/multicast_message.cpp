@@ -26,7 +26,8 @@ std::ostream &operator<<(std::ostream &stream, const MulticastMessageHeader &hea
         {MulticastMessageType::PARTICIPANT_DISCONNECT, "DISCONNECT"},
         {MulticastMessageType::PARTICIPANT_RECONNECT, "RECONNECT"},
         {MulticastMessageType::PARTICIPANT_MSEND, "MSEND"},
-        {MulticastMessageType::PARTICIPANT_QUIT, "QUIT"}
+        {MulticastMessageType::PARTICIPANT_QUIT, "QUIT"},
+        {MulticastMessageType::MULTI_MESSAGE, "MULTICAST MESSAGE"}
     };
 
     std::stringstream ss;
