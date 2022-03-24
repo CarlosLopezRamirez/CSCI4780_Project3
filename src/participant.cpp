@@ -275,6 +275,13 @@ void Participant::handleIncomingMulticastMessages() {
             data = std::string((char *)data_buffer.data(), header.size);
         }
 
-        std::cout << "[Multicast Message from Participant #" << std::to_string(header.pid) << "]: " << data << "\n";
+        // cout received message
+        std::string recvd_multi_msg = "[Multicast Message from Participant #" + std::to_string(header.pid) + "]: " + data + "\n";
+        std::cout << recvd_multi_msg;
+
+        // log received message
+        std::ofstream outfile;
+        outfile.open(this->log_file_path_, std::ios_base::app);
+        outfile << recvd_multi_msg;
     }
 }
