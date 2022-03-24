@@ -19,17 +19,19 @@ MulticastMessageHeader MulticastMessageHeader::from_buffer(Buffer &buffer) {
 std::ostream &operator<<(std::ostream &stream, const MulticastMessageHeader &header) {
     std::unordered_map<MulticastMessageType, std::string> type_map = {
         {MulticastMessageType::INVALID, "INVALID"},
-        {MulticastMessageType::ACKNOWLEDGEMENT, "ACKNOWLEDGEMENT"},
+        {MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, "NACK"},
+        {MulticastMessageType::ACKNOWLEDGEMENT, "ACK"},
         {MulticastMessageType::PARTICIPANT_REGISTER, "REGISTER"},
         {MulticastMessageType::PARTICIPANT_DEREGISTER, "DEREGISTER"},
         {MulticastMessageType::PARTICIPANT_DISCONNECT, "DISCONNECT"},
         {MulticastMessageType::PARTICIPANT_RECONNECT, "RECONNECT"},
         {MulticastMessageType::PARTICIPANT_MSEND, "MSEND"},
+        {MulticastMessageType::PARTICIPANT_QUIT, "QUIT"}
     };
 
     std::stringstream ss;
 
-    ss << "FTPMessage(";
+    ss << "MulticastMessage(";
     ss << "type=" << type_map[header.type];
     ss << ", pid=" << header.pid;
     ss << ", size=" << header.size;
@@ -40,8 +42,10 @@ std::ostream &operator<<(std::ostream &stream, const MulticastMessageHeader &hea
     return stream;
 }
 
-MulticastMessage::MulticastMessage() {
-
+MulticastMessage::MulticastMessage(MulticastMessageType type, uint16_t pid) {
+    header_.type = type;
+    header_.pid = pid;
+    header_.size = 0;
 }
 
 MulticastMessageHeader MulticastMessage::header() { return header_; }

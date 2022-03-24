@@ -28,14 +28,29 @@ class Participant {
         // Returns a `MulticastMessage` representation of a string that contains the user's input
         MulticastMessage parse_input(std::string participant_input);
 
-        // Function that continually handles messages in the message queue
-        void await_message_recv_();
-
         // Handle participant requests to coordinator
-        void handle_request_(MulticastMessage participant_request);
+        void handle_request(MulticastMessage participant_request);
 
         // Returns whether or not the Coordinator has the participant as registered
         bool previouslyRegistered();
+
+        // Handle Register Command
+        void handleRegister(MulticastMessage participant_request);
+
+        // Handle Deregister Command
+        void handleDeregister(MulticastMessage participant_request);
+
+        // Handle Reconnect Command
+        void handleReconnect(MulticastMessage participant_request);
+
+        // Handle Disconnect Command
+        void handleDisconnect(MulticastMessage participant_request);
+
+        // Handle MSend Command
+        void handleMSend(MulticastMessage participant_request);
+
+        // Handle Quit Command
+        void handleQuit();
 
         // Socket to be used by this participant to send messages
         InternetSocket participant_send_socket_;
@@ -58,6 +73,9 @@ class Participant {
         // Is the participant registered
         bool registered_ = false;
 
+        // Is the participant connected
+        bool connected_ = false;
+
         // Is the participant running
         bool is_running_;
 
@@ -70,7 +88,8 @@ class Participant {
             {"deregister", MulticastMessageType::PARTICIPANT_DEREGISTER}, 
             {"disconnect", MulticastMessageType::PARTICIPANT_DISCONNECT},
             {"reconnect" ,MulticastMessageType::PARTICIPANT_RECONNECT}, 
-            {"msend", MulticastMessageType::PARTICIPANT_MSEND}
+            {"msend", MulticastMessageType::PARTICIPANT_MSEND},
+            {"quit", MulticastMessageType::PARTICIPANT_QUIT}
         };
 };
 

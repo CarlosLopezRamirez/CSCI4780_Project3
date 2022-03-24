@@ -13,22 +13,25 @@
 enum class MulticastMessageType : uint8_t {
     // Invalid message type
     INVALID = 0,
-    ACKNOWLEDGEMENT,
 
+    // ACK OR NACK
+    ACKNOWLEDGEMENT,
+    NEGATIVE_ACKNOWLEDGEMENT,
 
     // Request types
     PARTICIPANT_REGISTER,
     PARTICIPANT_DEREGISTER,
     PARTICIPANT_DISCONNECT,
     PARTICIPANT_RECONNECT,
-    PARTICIPANT_MSEND
+    PARTICIPANT_MSEND,
+    PARTICIPANT_QUIT
 };
 
 struct MulticastMessageHeader {
     // The type of the message being transmitted
     MulticastMessageType type;
 
-    // Used to identify a command
+    // Participant ID
     uint16_t pid;
 
     // The total size of the message being transmitted, including the header
@@ -44,7 +47,7 @@ struct MulticastMessageHeader {
 class MulticastMessage {
   public:
     // Constructs an FTPMessage
-    MulticastMessage();
+    MulticastMessage(MulticastMessageType type, uint16_t id);
 
     // Returns the header of this message
     MulticastMessageHeader header();
