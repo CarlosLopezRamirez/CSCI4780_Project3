@@ -19,7 +19,6 @@ void Participant::start() {
     this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     // TODO: Ask if we need to handle checking if we were previously registered before killing the app
     while (is_running_) {
-        // TODO: Implement Multicast Message Constructor
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_);
         try {
             participant_request = this->prompt_participant();
@@ -108,6 +107,8 @@ void Participant::handleRegister(MulticastMessage participant_request) {
         std::cout << "You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
         this->connected_ = true;
+        this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
+        this->participant_receive_socket_.do_listen(10);
         incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
         incoming_messages_thread_.detach();
         return;
@@ -153,8 +154,10 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
     if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
-        std::cout << "You are now reconnected to the multicast group" << "\n";
         this->connected_ = true;
+        this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
+        this->participant_receive_socket_.do_listen(10);
+        std::cout << "You are now reconnected to the multicast group" << "\n";
         // TODO: receive all messages that you missed that fall within threshold
         incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
         incoming_messages_thread_.detach();
@@ -177,9 +180,10 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
     }
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageType ack = this->getACK().type;
-    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
-        std::cout << "You are now disconnected from the multicast group" << "\n";
+    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {        
         this->connected_ = false;
+        this->participant_receive_socket_.do_shutdown();
+        std::cout << "You are now disconnected from the multicast group" << "\n";
         incoming_messages_thread_.join();
         return;
     }
@@ -238,6 +242,39 @@ MulticastMessageHeader Participant::getACK() {
 }
 
 void Participant::handleIncomingMulticastMessages() {
+    PollInfo connection_request;
+    connection_request.readable  = true;
+    connection_request.writeable = false;
+
     // TODO: Implement
-    
+    while (this->connected_) {
+        // poll to see if there are any connections
+        PollInfo result = participant_receive_socket_.do_poll(connection_request, 1 * 1000 /* timeout after 1 second */);
+        if (!result.valid || (result.valid && !result.readable)) continue;
+
+        // We do not execute from here on forward if there is no connection from a coordinator
+        InternetSocket coordinator_message_socket = participant_receive_socket_.do_accept();
+
+        // Coordinator will only seek to connect when it is about to send a message, otherwise it would not connect
+        // Get the message header
+        Buffer recv_buffer(sizeof(MulticastMessageHeader));
+        size_t bytes_recv = coordinator_message_socket.do_recv(recv_buffer, MSG_PEEK);
+
+        // Return if the socket closed (recv() returns 0)
+        if (bytes_recv == 0) continue;
+
+        coordinator_message_socket.do_recvall(recv_buffer);
+
+        MulticastMessageHeader header = MulticastMessageHeader::from_buffer(recv_buffer);
+
+        // Get the message data (the message that was sent over multicast)
+        Buffer data_buffer(header.size);
+        std::string data;
+        if (header.size > 0) {
+            coordinator_message_socket.do_recvall(data_buffer);
+            data = std::string((char *)data_buffer.data(), header.size);
+        }
+
+        std::cout << "[Multicast Message from Participant #" << std::to_string(header.pid) << "]: " << data << "\n";
+    }
 }
