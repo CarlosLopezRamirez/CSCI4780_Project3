@@ -56,9 +56,13 @@ class Coordinator {
         std::atomic<bool> is_running_ = false;
 
         // Set of every participant id that is connected
-        std::set<int> pids_connected_;
+        // Key: pid
+        // Val: port
+        std::unordered_map<uint16_t, int> pids_connected_;
 
         // Set of every participant id that is registered
+        // Key: pid
+        // Val: ip addr
         std::unordered_map<int, std::string> pids_registered_;
 
         // Map of every registered but disconnected pid, with a set of messages they miss 

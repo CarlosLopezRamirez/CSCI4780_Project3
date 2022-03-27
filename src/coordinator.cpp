@@ -93,6 +93,7 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
             break;
         };
         case(MulticastMessageType::PARTICIPANT_MSEND): {
+            part_req.header().coordinator_time = std::time(0);
             this->handleMSend(part_req);
             break;
         }
@@ -104,8 +105,7 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
 
 void Coordinator::handleRegister(MulticastMessage part_req, std::string part_ip) {
     this->pids_registered_.insert({part_req.header().pid, part_ip});
-    this->pids_connected_.insert(part_req.header().pid);
-    return;
+    this->pids_connected_.insert({part_req.header().pid, stoi(part_req.body())});
 }
 
 void Coordinator::handleDeregister(MulticastMessage part_req) {
@@ -117,7 +117,7 @@ void Coordinator::handleReconnect(MulticastMessage part_req) {
     // TODO: SEND ALL MESSAGES MISSED WHILE DISCONNECTED
     pids_disconnected_.erase(part_req.header().pid);
     disconnect_times.erase(part_req.header().pid);
-    pids_connected_.insert(part_req.header().pid);
+    pids_connected_.insert({part_req.header().pid, stoi(part_req.body())});
     return;
 }
 
@@ -130,8 +130,16 @@ void Coordinator::handleDisconnect(MulticastMessage part_req) {
 }
 
 void Coordinator::handleMSend(MulticastMessage part_req) {
-    // TODO: Implement
     // Send message to all who are connected
+    for (auto const& [key, val] : this->pids_connected_) {
+        InternetSocket send_sock;
+        send_sock.do_connect(this->pids_registered_.at(key), val);
+        send_sock.do_sendall(part_req.to_buffer());
+        send_sock.do_shutdown();
+    }
     // Store message in map for those who are disconnected
+    for (auto const& [key, val]: this->pids_disconnected_) {
+        val.push_back(part_req);
+    }
     return;
 }
