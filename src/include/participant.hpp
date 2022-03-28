@@ -65,17 +65,17 @@ class Participant {
         // Thread to be used for handling incoming multicast messages
         std::thread incoming_messages_thread_;
 
+        // ID of this participant
+        int pid_;
+
+        // path of log_file
+        std::string log_file_path_;
+
         // Coordinator address that will be connected to
         std::string remoteaddr;
 
         // Coordinator port that will be connected to
         int coordinator_port;
-
-        // Port to bind to receive messages
-        int register_port_;
-
-        // ID of this participant
-        int pid_;
 
         // Is the participant registered
         bool registered_ = false;
@@ -85,9 +85,6 @@ class Participant {
 
         // Is the participant running
         bool is_running_;
-
-        // path of log_file
-        std::string log_file_path_;
 
         // Maps string to Command, to be used in `parse_input`
         const std::unordered_map<std::string, MulticastMessageType> cmd_map_ = {

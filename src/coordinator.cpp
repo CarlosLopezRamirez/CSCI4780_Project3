@@ -55,22 +55,21 @@ void Coordinator::handleIncomingMessages() {
             part_socket.do_recvall(data_buffer);
             data = std::string((char *)data_buffer.data(), header.size);
         }
-        MulticastMessage part_req(header.type, header.pid);
+        MulticastMessage part_req(header.type, header.pid, header.coordinator_time);
         part_req << data;
 
         std::cout << "[Multicast Request] " << header << "\n";
-        std::thread handle_request_thread = std::thread(&Coordinator::handleRequest, part_req, part_socket, this);
-        handle_request_thread.detach();
+        this->handleRequest(part_req, part_socket);
     }
 }
 
 void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_sock) {
     if (part_req.header().type != MulticastMessageType::INVALID) {
-        MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid);
+        MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
         part_sock.do_sendall(ack.to_buffer());
     }
     else {
-        MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid);
+        MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
         part_sock.do_sendall(ack.to_buffer());
         part_sock.do_shutdown();
         return;
@@ -93,7 +92,6 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
             break;
         };
         case(MulticastMessageType::PARTICIPANT_MSEND): {
-            part_req.header().coordinator_time = std::time(0);
             this->handleMSend(part_req);
             break;
         }
@@ -115,6 +113,16 @@ void Coordinator::handleDeregister(MulticastMessage part_req) {
 
 void Coordinator::handleReconnect(MulticastMessage part_req) {
     // TODO: SEND ALL MESSAGES MISSED WHILE DISCONNECTED
+    time_t reconnect_time = std::time(0);
+    std::vector<MulticastMessage> missed_messages = pids_disconnected_.at(part_req.header().pid);
+    InternetSocket send_sock;
+    send_sock.do_connect(this->pids_registered_.at(part_req.header().pid), stoi(part_req.body()));
+    for (auto message : missed_messages) {
+        // check if the message was sent within the threshold time
+        if (difftime(message.header().coordinator_time, reconnect_time) <= this->persistence_time_) {
+            send_sock.do_sendall(message.to_buffer());
+        }
+    }
     pids_disconnected_.erase(part_req.header().pid);
     disconnect_times.erase(part_req.header().pid);
     pids_connected_.insert({part_req.header().pid, stoi(part_req.body())});
@@ -131,15 +139,20 @@ void Coordinator::handleDisconnect(MulticastMessage part_req) {
 
 void Coordinator::handleMSend(MulticastMessage part_req) {
     // Send message to all who are connected
-    for (auto const& [key, val] : this->pids_connected_) {
+    for (auto [key, val] : this->pids_connected_) {
         InternetSocket send_sock;
         send_sock.do_connect(this->pids_registered_.at(key), val);
-        send_sock.do_sendall(part_req.to_buffer());
+        MulticastMessage tempMessage(MulticastMessageType::MULTI_MESSAGE, part_req.header().pid, part_req.header().coordinator_time);
+        tempMessage << part_req.body();
+        send_sock.do_sendall(tempMessage.to_buffer());
         send_sock.do_shutdown();
     }
     // Store message in map for those who are disconnected
-    for (auto const& [key, val]: this->pids_disconnected_) {
-        val.push_back(part_req);
+    for (auto [key, val]: this->pids_disconnected_) {
+        // MAKE MESSAGE FROM BODY OF REQUEST
+        MulticastMessage tempMessage(MulticastMessageType::MULTI_MESSAGE, part_req.header().pid, part_req.header().coordinator_time);
+        tempMessage << part_req.body();
+        val.push_back(tempMessage);
     }
     return;
 }

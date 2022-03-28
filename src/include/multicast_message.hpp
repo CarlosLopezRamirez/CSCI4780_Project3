@@ -53,7 +53,7 @@ struct MulticastMessageHeader {
 class MulticastMessage {
   public:
     // Constructs an FTPMessage
-    MulticastMessage(MulticastMessageType type, uint16_t pid);
+    MulticastMessage(MulticastMessageType type, uint16_t pid, time_t time_sent);
 
     // Returns the header of this message
     MulticastMessageHeader header();

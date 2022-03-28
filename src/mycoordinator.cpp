@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-#include "include/coordinator.hpp";
+#include "include/coordinator.hpp"
 
 int main (int argc, char** argv) {
     // tools for file input

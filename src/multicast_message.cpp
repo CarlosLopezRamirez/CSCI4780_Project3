@@ -43,10 +43,11 @@ std::ostream &operator<<(std::ostream &stream, const MulticastMessageHeader &hea
     return stream;
 }
 
-MulticastMessage::MulticastMessage(MulticastMessageType type, uint16_t pid) {
+MulticastMessage::MulticastMessage(MulticastMessageType type, uint16_t pid, time_t time_sent) {
     header_.type = type;
     header_.pid = pid;
     header_.size = 0;
+    header_.coordinator_time = time_sent;
 }
 
 MulticastMessageHeader MulticastMessage::header() { return header_; }

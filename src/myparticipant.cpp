@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-#include "include/participant.hpp";
+#include "include/participant.hpp"
 
 int main(int argc, char** argv) {
     // tools for file input

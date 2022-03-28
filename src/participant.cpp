@@ -17,7 +17,7 @@ Participant::Participant(int pid, std::string log_file,
 void Participant::start() {
     this->is_running_ = true;
     while (is_running_) {
-        MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_);
+        MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
             participant_request = this->prompt_participant();
         }
@@ -51,7 +51,7 @@ MulticastMessage Participant::parse_input(std::string participant_input) {
     MulticastMessageType req_type = cmd_map_.at(input_vector[0]);
 
     // TODO: Implement Multicast Message Constructor
-    MulticastMessage participant_req(req_type, this->pid_);
+    MulticastMessage participant_req(req_type, this->pid_, std::time(0));
 
     if (input_vector.size() > 1) {
         std::string req_data;
@@ -164,10 +164,9 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
         this->connected_ = true;
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
         this->participant_receive_socket_.do_listen(10);
-        std::cout << "You are now reconnected to the multicast group" << "\n";
-        // TODO: receive all messages that you missed that fall within threshold
         incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
         incoming_messages_thread_.detach();
+        std::cout << "You are now reconnected to the multicast group, will begin by sending missed messages" << "\n";
         return;
     }
     else {
@@ -287,8 +286,19 @@ void Participant::handleIncomingMulticastMessages() {
             data = std::string((char *)data_buffer.data(), header.size);
         }
 
+        std::stringstream time_stringstream_representation;
+        time_stringstream_representation << header.coordinator_time;
+        std::string time_string_representation = time_stringstream_representation.str();
+
         // cout received message
-        std::string recvd_multi_msg = "[Multicast Message from Participant #" + std::to_string(header.pid) + "]: " + data + "\n";
+        std::string recvd_multi_msg = 
+            "[Multicast Message Sent at " 
+            + time_string_representation
+            + " from Participant #" 
+            + std::to_string(header.pid) 
+            + "]: " 
+            + data 
+            + "\n";
         std::cout << recvd_multi_msg;
 
         // log received message
