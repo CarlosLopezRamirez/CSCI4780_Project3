@@ -102,9 +102,9 @@ void Participant::handleRegister(MulticastMessage participant_request) {
     // Based on project description, they only want us to connect to coordinator when we want to send a message
     this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageType ack = this->getACK().type;
+    MulticastMessageHeader ack = this->getACK();
     this->participant_send_socket_.do_shutdown();
-    if (ack == MulticastMessageType::ACKNOWLEDGEMENT) {
+    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
         this->connected_ = true;
@@ -245,12 +245,7 @@ MulticastMessageHeader Participant::getACK() {
 
     this->participant_send_socket_.do_recvall(header_buffer);
     MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
-    if (header.size > 0) {
-        return header;
-    }
-    else {
-        return MulticastMessageHeader();
-    }
+    return header;
 }
 
 void Participant::handleIncomingMulticastMessages() {
