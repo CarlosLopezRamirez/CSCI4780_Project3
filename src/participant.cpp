@@ -179,6 +179,7 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
     MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
     if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         this->connected_ = true;
+        this->participant_receive_socket_ = InternetSocket();
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
         this->participant_receive_socket_.do_listen(10);
         incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
