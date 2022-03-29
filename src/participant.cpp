@@ -216,7 +216,9 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
         this->connected_ = false;
         this->participant_receive_socket_.do_shutdown();
         std::cout << "You are now disconnected from the multicast group" << "\n";
-        incoming_messages_thread_.join();
+        if (incoming_messages_thread_.joinable()) {
+            incoming_messages_thread_.join();
+        }
         return;
     }
     else {
