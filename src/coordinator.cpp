@@ -83,6 +83,7 @@ void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_s
         part_sock.do_shutdown();
         return;
     }
+    std::cout << "[Participant Request] " << part_req.header() << "\n";
     switch(part_req.header().type) {
         case(MulticastMessageType::PARTICIPANT_REGISTER): {
             this->handleRegister(part_req, part_sock.host_ip());
@@ -156,6 +157,7 @@ void Coordinator::handleMSend(MulticastMessage part_req) {
         send_sock.do_sendall(tempMessage.to_buffer());
         send_sock.do_shutdown();
     }
+    std::cout << "[Message Sent to Group] " << part_req.body() << "\n";
     // Store message in map for those who are disconnected
     for (auto [key, val]: this->pids_disconnected_) {
         // MAKE MESSAGE FROM BODY OF REQUEST
