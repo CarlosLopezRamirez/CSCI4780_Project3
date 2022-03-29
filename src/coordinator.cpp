@@ -71,13 +71,12 @@ void Coordinator::handleIncomingMessages() {
             MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
             part_socket.do_sendall(ack.to_buffer());
             std::cout << "[Participant Request] " << header << "\n";
-            this->handleRequest(part_req, part_socket.remote_addr());
-            part_socket.do_shutdown();
+            std::string part_ip = part_socket.remote_addr().substr(0, part_socket.remote_addr().find(":"));
+            this->handleRequest(part_req, part_ip);
         }
         else {
             MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
             part_socket.do_sendall(ack.to_buffer());
-            part_socket.do_shutdown();
             return;
         }
     }
