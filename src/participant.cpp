@@ -307,9 +307,9 @@ void Participant::handleIncomingMulticastMessages() {
             + std::to_string(header.pid) 
             + "]: " 
             + data 
-            + "\n"
-            + "WHAT THE FUCK ";
+            + "\n";
         std::cout << recvd_multi_msg;
+        std::cout << "multicast_participant> ";
 
         // log received message
         std::ofstream outfile;
