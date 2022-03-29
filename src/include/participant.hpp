@@ -48,17 +48,11 @@ class Participant {
         // Handle MSend Command
         void handleMSend(MulticastMessage participant_request);
 
-        // Get ACK or NEG_ACK
-        MulticastMessageHeader getACK();
-
         // Handle Quit Command
         void handleQuit();
 
         // Handle all messages that are sent by other participants
         void handleIncomingMulticastMessages();
-
-        // Socket to be used by this participant to send messages
-        InternetSocket participant_send_socket_;
 
         // Socket to be used by this participant to receive messages
         InternetSocket participant_receive_socket_;

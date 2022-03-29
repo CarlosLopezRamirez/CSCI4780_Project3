@@ -99,10 +99,18 @@ void Participant::handleRegister(MulticastMessage participant_request) {
         std::cout << "You are already registered" << "\n";
         return;
     }
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageHeader ack = this->getACK();
-    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
+    InternetSocket participant_send_socket_;
+    participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
+    participant_send_socket_.do_sendall(participant_request.to_buffer());
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return;
+    }
+    participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
         this->connected_ = true;
@@ -128,10 +136,18 @@ void Participant::handleDeregister(MulticastMessage participant_request) {
         std::cout << "Please disconnect before deregistering" << "\n";
         return;
     }
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageHeader ack = this->getACK();
-    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
+    InternetSocket participant_send_socket_;
+    participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
+    participant_send_socket_.do_sendall(participant_request.to_buffer());
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return;
+    }
+    participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now deregistered from the multicast group" << "\n";
         this->registered_ = false;
         return;
@@ -151,10 +167,18 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
         std::cout << "You are already connected" << "\n";
         return;
     }
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageHeader ack = this->getACK();
-    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
+    InternetSocket participant_send_socket_;
+    participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
+    participant_send_socket_.do_sendall(participant_request.to_buffer());
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return;
+    }
+    participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         this->connected_ = true;
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
         this->participant_receive_socket_.do_listen(10);
@@ -178,10 +202,18 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
         std::cout << "You are already disconnected" << "\n";
         return;
     }
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageHeader ack = this->getACK();
-    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {        
+    InternetSocket participant_send_socket_;
+    participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
+    participant_send_socket_.do_sendall(participant_request.to_buffer());
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return;
+    }
+    participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {        
         this->connected_ = false;
         this->participant_receive_socket_.do_shutdown();
         std::cout << "You are now disconnected from the multicast group" << "\n";
@@ -202,10 +234,18 @@ void Participant::handleMSend(MulticastMessage participant_request) {
         std::cout << "You must be connected to send messages to the multicast group" << "\n";
         return;
     }
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
-    this->participant_send_socket_.do_sendall(participant_request.to_buffer());
-    MulticastMessageHeader ack = this->getACK();
-    if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
+    InternetSocket participant_send_socket_;
+    participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
+    participant_send_socket_.do_sendall(participant_request.to_buffer());
+    Buffer header_buffer(sizeof(MulticastMessageHeader));
+    size_t bytes_recvd = participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
+
+    if (bytes_recvd == 0) {
+        return;
+    }
+    participant_send_socket_.do_recvall(header_buffer);
+    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
+    if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "Message sent to multicast group succesfully" << "\n";
         return;
     }
@@ -222,19 +262,6 @@ void Participant::handleQuit() {
     }
     std::cout << "Thank you for using this persistent and asynchronous multicast" << "\n";
     this->stop();
-}
-
-MulticastMessageHeader Participant::getACK() {
-    Buffer header_buffer(sizeof(MulticastMessageHeader));
-    size_t bytes_recvd = this->participant_send_socket_.do_recv(header_buffer, MSG_PEEK);
-
-    if (bytes_recvd == 0) {
-        return MulticastMessageHeader();
-    }
-
-    this->participant_send_socket_.do_recvall(header_buffer);
-    MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
-    return header;
 }
 
 void Participant::handleIncomingMulticastMessages() {
