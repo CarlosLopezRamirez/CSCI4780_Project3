@@ -303,17 +303,15 @@ void Participant::handleIncomingMulticastMessages() {
 
         // cout received message
         std::string recvd_multi_msg = 
-            "[Multicast Message Sent at " 
-            + time_string_representation
-            + " from Participant #" 
+            "[Multicast Message Sent from Participant #" 
             + std::to_string(header.pid) 
             + "]: " 
             + data 
-            + "\n";
+            + "\n"
+            + "multicast_participant> ";
         std::cout << recvd_multi_msg;
 
         // log received message
-        // TODO: LOOK INTO ADDING TIME MESSAGE SENT INTO MULTICAST MESSAGE HEADER
         std::ofstream outfile;
         outfile.open(this->log_file_path_, std::ios_base::app);
         outfile << recvd_multi_msg;
