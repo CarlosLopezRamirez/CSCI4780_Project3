@@ -53,7 +53,7 @@ class Coordinator {
         std::thread incoming_messages_thread_;
         
         // True when the Coordinator is not attempting to stop its operation
-        std::atomic<bool> is_running_ = false;
+        bool is_running_ = false;
 
         // Set of every participant id that is connected
         // Key: pid
