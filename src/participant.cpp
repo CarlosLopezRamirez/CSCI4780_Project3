@@ -33,7 +33,6 @@ void Participant::start() {
 void Participant::stop() { is_running_ = false; }
 
 MulticastMessage Participant::prompt_participant() {
-    std::cout << "multicast_participant> ";
     std::string user_input;
     std::getline(std::cin, user_input);
     return this->parse_input(user_input);
@@ -309,7 +308,6 @@ void Participant::handleIncomingMulticastMessages() {
             + data 
             + "\n";
         std::cout << recvd_multi_msg;
-        std::cout << "multicast_participant> ";
 
         // log received message
         std::ofstream outfile;
