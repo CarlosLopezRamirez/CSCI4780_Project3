@@ -72,6 +72,7 @@ void Coordinator::handleIncomingMessages() {
             part_socket.do_sendall(ack.to_buffer());
             std::cout << "[Participant Request] " << header << "\n";
             this->handleRequest(part_req, part_socket.remote_addr());
+            part_socket.do_shutdown();
         }
         else {
             MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));

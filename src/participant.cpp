@@ -16,7 +16,6 @@ Participant::Participant(int pid, std::string log_file,
 
 void Participant::start() {
     this->is_running_ = true;
-    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
@@ -100,8 +99,10 @@ void Participant::handleRegister(MulticastMessage participant_request) {
         std::cout << "You are already registered" << "\n";
         return;
     }
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageHeader ack = this->getACK();
+    this->participant_receive_socket_.do_shutdown();
     if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
@@ -128,8 +129,10 @@ void Participant::handleDeregister(MulticastMessage participant_request) {
         std::cout << "Please disconnect before deregistering" << "\n";
         return;
     }
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageHeader ack = this->getACK();
+    this->participant_receive_socket_.do_shutdown();
     if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "You are now deregistered from the multicast group" << "\n";
         this->registered_ = false;
@@ -150,8 +153,10 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
         std::cout << "You are already connected" << "\n";
         return;
     }
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageHeader ack = this->getACK();
+    this->participant_receive_socket_.do_shutdown();
     if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         this->connected_ = true;
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
@@ -176,8 +181,10 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
         std::cout << "You are already disconnected" << "\n";
         return;
     }
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageHeader ack = this->getACK();
+    this->participant_receive_socket_.do_shutdown();
     if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {        
         this->connected_ = false;
         this->participant_receive_socket_.do_shutdown();
@@ -199,8 +206,10 @@ void Participant::handleMSend(MulticastMessage participant_request) {
         std::cout << "You must be connected to send messages to the multicast group" << "\n";
         return;
     }
+    this->participant_send_socket_.do_connect(this->remoteaddr, this->coordinator_port);
     this->participant_send_socket_.do_sendall(participant_request.to_buffer());
     MulticastMessageHeader ack = this->getACK();
+    this->participant_receive_socket_.do_shutdown();
     if (ack.type == MulticastMessageType::ACKNOWLEDGEMENT) {
         std::cout << "Message sent to multicast group succesfully" << "\n";
         return;
