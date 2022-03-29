@@ -29,7 +29,7 @@ class Coordinator {
     private:
         void handleIncomingMessages();
 
-        void handleRequest(MulticastMessage part_req, InternetSocket part_sock);
+        void handleRequest(MulticastMessage part_req, std::string part_ip);
 
         void handleRegister(MulticastMessage part_req, std::string part_ip);
 

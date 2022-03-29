@@ -67,26 +67,25 @@ void Coordinator::handleIncomingMessages() {
         MulticastMessage part_req(header.type, header.pid, header.coordinator_time);
         part_req << data;
 
-        std::cout << "[Multicast Request] " << header << "\n";
-        this->handleRequest(part_req, part_socket);
+        if (part_req.header().type != MulticastMessageType::INVALID) {
+            MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
+            part_socket.do_sendall(ack.to_buffer());
+            std::cout << "[Participant Request] " << header << "\n";
+            this->handleRequest(part_req, part_socket.remote_addr());
+        }
+        else {
+            MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
+            part_socket.do_sendall(ack.to_buffer());
+            part_socket.do_shutdown();
+            return;
+        }
     }
 }
 
-void Coordinator::handleRequest(MulticastMessage part_req, InternetSocket part_sock) {
-    if (part_req.header().type != MulticastMessageType::INVALID) {
-        MulticastMessage ack(MulticastMessageType::ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
-        part_sock.do_sendall(ack.to_buffer());
-    }
-    else {
-        MulticastMessage ack(MulticastMessageType::NEGATIVE_ACKNOWLEDGEMENT, part_req.header().pid, std::time(0));
-        part_sock.do_sendall(ack.to_buffer());
-        part_sock.do_shutdown();
-        return;
-    }
-    std::cout << "[Participant Request] " << part_req.header() << "\n";
+void Coordinator::handleRequest(MulticastMessage part_req, std::string part_ip) {
     switch(part_req.header().type) {
         case(MulticastMessageType::PARTICIPANT_REGISTER): {
-            this->handleRegister(part_req, part_sock.host_ip());
+            this->handleRegister(part_req, part_ip);
             break;
         };
         case(MulticastMessageType::PARTICIPANT_DEREGISTER): {
