@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include <atomic>
+#include <queue>
 
 #include "multicast_message.hpp"
 #include "inet/internet_socket.hpp"
@@ -67,7 +68,9 @@ class Coordinator {
         std::unordered_map<int, std::string> pids_registered_;
 
         // Map of every registered but disconnected pid, with a set of messages they miss 
-        std::unordered_map<int, std::vector<MulticastMessage>> pids_disconnected_;
+        // Key: pid
+        // Val: filename
+        std::unordered_map<int, std::string> pids_disconnected_;
 
         // Map of times that participants disconnected
         std::unordered_map<int, time_t> disconnect_times;

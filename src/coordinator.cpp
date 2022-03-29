@@ -122,16 +122,26 @@ void Coordinator::handleDeregister(MulticastMessage part_req) {
 
 void Coordinator::handleReconnect(MulticastMessage part_req) {
     // TODO: SEND ALL MESSAGES MISSED WHILE DISCONNECTED
-    time_t reconnect_time = std::time(0);
-    std::vector<MulticastMessage> missed_messages = pids_disconnected_.at(part_req.header().pid);
-    InternetSocket send_sock;
-    send_sock.do_connect(this->pids_registered_.at(part_req.header().pid), stoi(part_req.body()));
-    for (auto message : missed_messages) {
-        // check if the message was sent within the threshold time
-        if (difftime(message.header().coordinator_time, reconnect_time) <= this->persistence_time_) {
-            send_sock.do_sendall(message.to_buffer());
+    // OPEN FILE, FOR EACH LINE, SEND MESSAGE
+    std::ifstream msgfile;
+    std::string file_path = pids_disconnected_.at(part_req.header().pid);
+    msgfile.open(file_path);
+    std::string msg_body;
+    uint16_t msg_pid;
+    time_t msg_time;
+    std::string line;
+    while (std::getline(msgfile, line)) {
+        std::istringstream iss(line);
+        iss >> msg_body >> msg_pid >> msg_time;
+        if (difftime(msg_time, disconnect_times.at(part_req.header().pid)) <= this->persistence_time_) {
+            MulticastMessage missed_msg(MulticastMessageType::MULTI_MESSAGE, msg_pid, msg_time);
+            missed_msg << msg_body;
+            InternetSocket send_sock;
+            send_sock.do_connect(this->pids_registered_.at(part_req.header().pid), stoi(part_req.body()));
+            send_sock.do_sendall(missed_msg.to_buffer());
         }
     }
+    std::remove(file_path.c_str());
     pids_disconnected_.erase(part_req.header().pid);
     disconnect_times.erase(part_req.header().pid);
     pids_connected_.insert({part_req.header().pid, stoi(part_req.body())});
@@ -141,8 +151,10 @@ void Coordinator::handleReconnect(MulticastMessage part_req) {
 void Coordinator::handleDisconnect(MulticastMessage part_req) {
     disconnect_times.insert({part_req.header().pid, std::time(0)});
     pids_connected_.erase(part_req.header().pid);
-    std::vector<MulticastMessage> temp;
-    this->pids_disconnected_.insert({part_req.header().pid, temp});
+    std::string file_path = std::to_string(part_req.header().pid) + "_missed_msgs.txt";
+    std::ofstream outfile(file_path);
+    outfile.close();
+    this->pids_disconnected_.insert({part_req.header().pid, file_path});
     return;
 }
 
@@ -159,10 +171,10 @@ void Coordinator::handleMSend(MulticastMessage part_req) {
     std::cout << "[Message Sent to Group] " << part_req.body() << "\n";
     // Store message in map for those who are disconnected
     for (auto [key, val]: this->pids_disconnected_) {
-        // MAKE MESSAGE FROM BODY OF REQUEST
-        MulticastMessage tempMessage(MulticastMessageType::MULTI_MESSAGE, part_req.header().pid, part_req.header().coordinator_time);
-        tempMessage << part_req.body();
-        val.push_back(tempMessage);
+        std::ofstream fileout;
+        fileout.open(val, std::ios_base::app);
+        fileout << part_req.body() << " " << part_req.header().pid << " " << part_req.header().coordinator_time << "\n";
+        fileout.close();
     }
     return;
 }
