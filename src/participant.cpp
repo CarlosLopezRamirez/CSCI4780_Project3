@@ -15,7 +15,12 @@ Participant::Participant(int pid, std::string log_file,
 { }
 
 void Participant::start() {
-    this->is_running_ = true;
+    std::cout << "Welcome to the persistent and asynchronous multicast, commands are as following: " << "\n";
+    std::cout << "register [portnumber]" << "\n";
+    std::cout << "deregister" << "\n";
+    std::cout << "reconnect [portnumber]" << "\n";
+    std::cout << "disconnect" << "\n";
+    std::cout << "msend [message]" << "\n";
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
@@ -249,7 +254,6 @@ void Participant::handleMSend(MulticastMessage participant_request) {
     participant_send_socket_.do_recvall(header_buffer);
     MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
     if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
-        std::cout << "Message sent to multicast group succesfully" << "\n";
         return;
     }
     else {
