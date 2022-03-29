@@ -9,6 +9,7 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include <atomic>
 
 #include "multicast_message.hpp"
 #include "inet/internet_socket.hpp"
@@ -53,7 +54,7 @@ class Coordinator {
         std::thread incoming_messages_thread_;
         
         // True when the Coordinator is not attempting to stop its operation
-        bool is_running_ = false;
+        std::atomic<bool> is_running_;
 
         // Set of every participant id that is connected
         // Key: pid

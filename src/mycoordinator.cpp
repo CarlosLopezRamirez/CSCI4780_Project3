@@ -9,25 +9,24 @@
 #include "include/coordinator.hpp"
 
 int main (int argc, char** argv) {
-    // tools for file input
-    std::string file_name;
-    std::ifstream file;
-
-    // coordinator args
-    std::string localport, persistence_time;
-
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << "<coordinator_config_file>\n";
+        std::cerr << "Usage: " << argv[0] << " <coordinator_config_file>\n";
         return EXIT_FAILURE;
     }
 
     // read from file
-    file_name = argv[1];
-    file.open(file_name);
-    std::getline(file, localport);
-    std::getline(file, persistence_time);
-
-    Coordinator coordinator(std::stoi(localport), std::stoi(persistence_time));
+    std::vector<std::string> coordinator_args;
+    std::string file_name = argv[1];
+    std::ifstream infile(file_name);
+    std::string line;
+    if (!infile.is_open()) {
+        std::cout << "Could not open the file - " << file_name << "\n";
+        return EXIT_FAILURE;
+    }
+    while(std::getline(infile, line)) {
+        coordinator_args.push_back(line);
+    }
+    Coordinator coordinator(stoi(coordinator_args.at(0)), stoi(coordinator_args.at(1)));
     coordinator.start();
     return EXIT_SUCCESS;
 }

@@ -13,10 +13,19 @@ Coordinator::Coordinator(uint16_t localport, int persistence_time) :
 { }
 
 void Coordinator::start() {
+    std::cout << "[Coordinator Message] Coordinator Starting - Listening on Port " 
+        + std::to_string(this->localport_) 
+        + " with a persistence time of "
+        + std::to_string(this->persistence_time_)
+        + " seconds"
+        + "\n";
     this->is_running_ = true;
     this->coordinator_socket_.do_bind(this->localport_);
+    std::cout << "[Coordinator Message] Coordinator Succesfully Binded to Port " + std::to_string(this->localport_) + "\n";
     this->coordinator_socket_.do_listen(10);
+    std::cout << "[Coordinator Message] Coordinator Port " + std::to_string(this->localport_) + " Currently Listening With a Backlog of 10" + "\n";
     incoming_messages_thread_ = std::thread(&Coordinator::handleIncomingMessages, this);
+    incoming_messages_thread_.join();
     return;
 }
 

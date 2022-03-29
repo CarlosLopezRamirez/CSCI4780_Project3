@@ -7,6 +7,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <thread>
+#include <atomic>
 
 #include "multicast_message.hpp"
 #include "inet/internet_socket.hpp"
@@ -78,13 +79,13 @@ class Participant {
         int coordinator_port;
 
         // Is the participant registered
-        bool registered_ = false;
+        std::atomic<bool> registered_ = false;
 
         // Is the participant connected
-        bool connected_ = false;
+        std::atomic<bool> connected_ = false;
 
         // Is the participant running
-        bool is_running_;
+        std::atomic<bool> is_running_;
 
         // Maps string to Command, to be used in `parse_input`
         const std::unordered_map<std::string, MulticastMessageType> cmd_map_ = {
