@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <sstream>
 #include <fstream>
+#include <ctime>
 
 Participant::Participant(int pid, std::string log_file, 
     std::string remoteaddr, uint16_t remote_port) : 
@@ -310,17 +311,21 @@ void Participant::handleIncomingMulticastMessages() {
         time_stringstream_representation << header.coordinator_time;
         std::string time_string_representation = time_stringstream_representation.str();
 
+        std::time_t msg_time = header.coordinator_time;
+        std::tm *ptm = std::localtime(&msg_time);
+        char buffer[32];
+        std::strftime(buffer, 32, "%a, %d.%m.%Y %H:%M:%S", ptm);
+        std::string time_string(buffer);
         // cout received message
         std::string recvd_multi_msg = 
             "[Multicast Message Sent from Participant #" 
             + std::to_string(header.pid) 
             + " at "
-            + std::to_string(header.coordinator_time)
+            + time_string
             + "]: " 
             + data 
             + "\n";
-        std::cout << recvd_multi_msg << "\n";
-        std::cout << "myparticipant> ";
+        std::cout << recvd_multi_msg;
 
         // log received message
         std::ofstream outfile;
