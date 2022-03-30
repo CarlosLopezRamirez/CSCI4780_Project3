@@ -326,7 +326,7 @@ void Participant::handleIncomingMulticastMessages() {
             + "]: " 
             + data 
             + "\n";
-        std::cout << recvd_multi_msg << "> ";
+        std::cout << "> " << recvd_multi_msg;
 
         // log received message
         std::ofstream outfile;
