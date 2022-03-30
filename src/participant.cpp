@@ -23,6 +23,7 @@ void Participant::start() {
     std::cout << "reconnect [portnumber]" << "\n";
     std::cout << "disconnect" << "\n";
     std::cout << "msend [message]" << "\n";
+    std::cout << "quit" << "\n";
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
@@ -318,7 +319,7 @@ void Participant::handleIncomingMulticastMessages() {
         std::string time_string(buffer);
         // cout received message
         std::string recvd_multi_msg = 
-            "[Multicast Message Sent from Participant #" 
+            "\n[Multicast Message Sent from Participant #" 
             + std::to_string(header.pid) 
             + " at "
             + time_string
@@ -326,6 +327,7 @@ void Participant::handleIncomingMulticastMessages() {
             + data 
             + "\n";
         std::cout << recvd_multi_msg;
+        std::cout << "myparticipant> ";
 
         // log received message
         std::ofstream outfile;
