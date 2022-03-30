@@ -41,7 +41,6 @@ void Participant::start() {
 void Participant::stop() { is_running_ = false; }
 
 MulticastMessage Participant::prompt_participant() {
-    std::cout << "myparticipant> ";
     std::string user_input;
     std::getline(std::cin, user_input);
     return this->parse_input(user_input);
@@ -332,6 +331,5 @@ void Participant::handleIncomingMulticastMessages() {
         std::ofstream outfile;
         outfile.open(this->log_file_path_, std::ios_base::app);
         outfile << recvd_multi_msg;
-        std::cout << "myparticipant> ";
     }
 }
