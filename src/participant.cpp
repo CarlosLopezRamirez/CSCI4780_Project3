@@ -319,14 +319,14 @@ void Participant::handleIncomingMulticastMessages() {
         std::string time_string(buffer);
         // cout received message
         std::string recvd_multi_msg = 
-            "\n[Multicast Message Sent from Participant #" 
+            "[Multicast Message Sent from Participant #" 
             + std::to_string(header.pid) 
             + " at "
             + time_string
             + "]: " 
             + data 
             + "\n";
-        std::cout << recvd_multi_msg;
+        std::cout << "\n" << recvd_multi_msg;
 
         // log received message
         std::ofstream outfile;
