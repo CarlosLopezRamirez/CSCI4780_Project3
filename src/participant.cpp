@@ -27,7 +27,6 @@ void Participant::start() {
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
-            std::cout << "> ";
             participant_request = this->prompt_participant();
         }
         catch (std::out_of_range &err) {
@@ -42,6 +41,7 @@ void Participant::start() {
 void Participant::stop() { is_running_ = false; }
 
 MulticastMessage Participant::prompt_participant() {
+    std::cout << "> ";
     std::string user_input;
     std::getline(std::cin, user_input);
     return this->parse_input(user_input);
