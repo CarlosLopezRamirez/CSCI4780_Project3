@@ -20,7 +20,7 @@ files into an `obj/` directory.
 ```sh
 Coordinator usage: mycoordinator <coordinator_configuration_file>
 
-Client usage: myparticipant <participant_configuration_file>
+Participant usage: myparticipant <participant_configuration_file>
 ```
 
 ## Honesty Statement
