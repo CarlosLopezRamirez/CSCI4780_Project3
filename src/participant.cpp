@@ -27,10 +27,11 @@ void Participant::start() {
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
+            std::cout << "> ";
             participant_request = this->prompt_participant();
         }
         catch (std::out_of_range &err) {
-            std::cout << "Error: invalid command\n";
+            std::cout << "> Error: invalid command\n";
             continue;
         }
         handle_request(participant_request);
@@ -103,7 +104,7 @@ void Participant::handle_request(MulticastMessage participant_request) {
 
 void Participant::handleRegister(MulticastMessage participant_request) {
     if (this->registered_) {
-        std::cout << "You are already registered" << "\n";
+        std::cout << "> You are already registered" << "\n";
         return;
     }
     InternetSocket participant_send_socket_;
@@ -118,7 +119,7 @@ void Participant::handleRegister(MulticastMessage participant_request) {
     participant_send_socket_.do_recvall(header_buffer);
     MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
     if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
-        std::cout << "You are now registered and connected to the multicast group" << "\n";
+        std::cout << "> You are now registered and connected to the multicast group" << "\n";
         this->registered_ = true;
         this->connected_ = true;
         this->participant_receive_socket_.do_bind(stoi(participant_request.body()));
@@ -128,19 +129,19 @@ void Participant::handleRegister(MulticastMessage participant_request) {
         return;
     }
     else {
-        std::cout << "You were not able to register to the multicast group" << "\n";
+        std::cout << "> You were not able to register to the multicast group" << "\n";
         return;
     }
 }
 
 void Participant::handleDeregister(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You are already deregistered" << "\n";
+        std::cout << "> You are already deregistered" << "\n";
         return;
     }
     if (this->connected_) {
         // TODO: Ask if this is an ok way to handle this
-        std::cout << "Please disconnect before deregistering" << "\n";
+        std::cout << "> Please disconnect before deregistering" << "\n";
         return;
     }
     InternetSocket participant_send_socket_;
@@ -155,23 +156,23 @@ void Participant::handleDeregister(MulticastMessage participant_request) {
     participant_send_socket_.do_recvall(header_buffer);
     MulticastMessageHeader header = MulticastMessageHeader::from_buffer(header_buffer);
     if (header.type == MulticastMessageType::ACKNOWLEDGEMENT) {
-        std::cout << "You are now deregistered from the multicast group" << "\n";
+        std::cout << "> You are now deregistered from the multicast group" << "\n";
         this->registered_ = false;
         return;
     }
     else {
-        std::cout << "You were not able to register to the multicast group" << "\n";
+        std::cout << "> You were not able to register to the multicast group" << "\n";
         return;
     }
 }
 
 void Participant::handleReconnect(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You must be registered to be able to disconnect/reconnect" << "\n";
+        std::cout << "> You must be registered to be able to disconnect/reconnect" << "\n";
         return;
     }
     if (this->connected_) {
-        std::cout << "You are already connected" << "\n";
+        std::cout << "> You are already connected" << "\n";
         return;
     }
     InternetSocket participant_send_socket_;
@@ -192,22 +193,22 @@ void Participant::handleReconnect(MulticastMessage participant_request) {
         this->participant_receive_socket_.do_listen(10);
         incoming_messages_thread_ = std::thread(&Participant::handleIncomingMulticastMessages, this);
         incoming_messages_thread_.detach();
-        std::cout << "You are now reconnected to the multicast group, will begin by sending missed messages" << "\n";
+        std::cout << "> You are now reconnected to the multicast group, will begin by sending missed messages" << "\n";
         return;
     }
     else {
-        std::cout << "You were not able to reconnect to the multicast group" << "\n";
+        std::cout << "> You were not able to reconnect to the multicast group" << "\n";
         return;
     }
 }
 
 void Participant::handleDisconnect(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You must be registered to be able to disconnect/reconnect" << "\n";
+        std::cout << "> You must be registered to be able to disconnect/reconnect" << "\n";
         return;
     }
     if (!this->connected_) {
-        std::cout << "You are already disconnected" << "\n";
+        std::cout << "> You are already disconnected" << "\n";
         return;
     }
     InternetSocket participant_send_socket_;
@@ -225,24 +226,24 @@ void Participant::handleDisconnect(MulticastMessage participant_request) {
         this->connected_ = false;
         this->participant_receive_socket_.do_shutdown();
         this->participant_receive_socket_.~InternetSocket();
-        std::cout << "You are now disconnected from the multicast group" << "\n";
+        std::cout << "> You are now disconnected from the multicast group" << "\n";
         if (incoming_messages_thread_.joinable()) {
             incoming_messages_thread_.join();
         }
         return;
     }
     else {
-        std::cout << "You were not able to disconnect from the multicast group" << "\n";
+        std::cout << "> You were not able to disconnect from the multicast group" << "\n";
     }
 }
 
 void Participant::handleMSend(MulticastMessage participant_request) {
     if (!this->registered_) {
-        std::cout << "You must be registered to send messages to the multicast group" << "\n";
+        std::cout << "> You must be registered to send messages to the multicast group" << "\n";
         return;
     }
     if (!this->connected_) {
-        std::cout << "You must be connected to send messages to the multicast group" << "\n";
+        std::cout << "> You must be connected to send messages to the multicast group" << "\n";
         return;
     }
     InternetSocket participant_send_socket_;
@@ -260,17 +261,17 @@ void Participant::handleMSend(MulticastMessage participant_request) {
         return;
     }
     else {
-        std::cout << "Message was not sent succesfully to multicast group" << "\n";
+        std::cout << "> Message was not sent succesfully to multicast group" << "\n";
         return;
     }
 }
 
 void Participant::handleQuit() {
     if (this->connected_) {
-        std::cout << "Please disconnect before quitting" << "\n";
+        std::cout << "> Please disconnect before quitting" << "\n";
         return;
     }
-    std::cout << "Thank you for using this persistent and asynchronous multicast" << "\n";
+    std::cout << "> Thank you for using this persistent and asynchronous multicast" << "\n";
     this->stop();
 }
 
@@ -318,14 +319,14 @@ void Participant::handleIncomingMulticastMessages() {
         std::string time_string(buffer);
         // cout received message
         std::string recvd_multi_msg = 
-            "[Multicast Message Sent from Participant #" 
+            "> [Multicast Message Sent from Participant #" 
             + std::to_string(header.pid) 
             + " at "
             + time_string
             + "]: " 
             + data 
             + "\n";
-        std::cout << recvd_multi_msg;
+        std::cout << recvd_multi_msg << "> ";
 
         // log received message
         std::ofstream outfile;
