@@ -117,6 +117,10 @@ void Coordinator::handleRegister(MulticastMessage part_req, std::string part_ip)
 
 void Coordinator::handleDeregister(MulticastMessage part_req) {
     this->pids_registered_.erase(part_req.header().pid);
+    if (this->pids_disconnected_.count(part_req.header().pid) > 0) {
+        std::remove(this->pids_disconnected_.at(part_req.header().pid).c_str());
+        this->pids_disconnected_.erase(part_req.header().pid);
+    }
     return;
 }
 
