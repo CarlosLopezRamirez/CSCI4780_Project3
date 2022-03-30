@@ -327,11 +327,11 @@ void Participant::handleIncomingMulticastMessages() {
             + data 
             + "\n";
         std::cout << recvd_multi_msg;
-        std::cout << "myparticipant> ";
 
         // log received message
         std::ofstream outfile;
         outfile.open(this->log_file_path_, std::ios_base::app);
         outfile << recvd_multi_msg;
+        std::cout << "myparticipant> ";
     }
 }
