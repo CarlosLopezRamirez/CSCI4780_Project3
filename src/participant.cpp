@@ -15,6 +15,7 @@ Participant::Participant(int pid, std::string log_file,
 { }
 
 void Participant::start() {
+    this->is_running_ = true;
     std::cout << "Welcome to the persistent and asynchronous multicast, commands are as following: " << "\n";
     std::cout << "register [portnumber]" << "\n";
     std::cout << "deregister" << "\n";
