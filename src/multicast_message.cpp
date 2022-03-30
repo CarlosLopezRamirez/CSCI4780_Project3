@@ -1,4 +1,4 @@
-// File: include/ftp_message.hpp
+// File: multicast_message.cpp
 // Author(s): Caleb Johnson-Cantrell, Carlos López Ramírez, Ojas Nadkarni
 
 #include "include/multicast_message.hpp"

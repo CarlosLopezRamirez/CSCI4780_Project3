@@ -1,4 +1,4 @@
-// File: include/ftp_message.hpp
+// File: include/multicast_message.hpp
 // Author(s): Caleb Johnson-Cantrell, Carlos López Ramírez, Ojas Nadkarni
 
 #pragma once
