@@ -24,6 +24,7 @@ void Participant::start() {
     std::cout << "disconnect" << "\n";
     std::cout << "msend [message]" << "\n";
     std::cout << "quit" << "\n";
+    std::cout << "You can begin typing in your commands below, there is no prompt due to issues involving using std::cout and std::cin at the same time" << "\n";
     while (is_running_) {
         MulticastMessage participant_request = MulticastMessage(MulticastMessageType::INVALID, this->pid_, std::time(0));
         try {
